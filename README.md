@@ -2,6 +2,17 @@
 
 **FIXED:** The overlay now correctly targets only the MC5 game window (`WindowsEntryPoint.Windows_W10.exe`) and will only be visible when the game window is active and not minimized.
 
+---
+
+## 📚 Documentation
+
+- **[⚡ QUICK START GUIDE](QUICK_START.md)** ← Start here! 3 simple steps to get ping monitoring
+- **[📖 USAGE GUIDE](USAGE_GUIDE.md)** ← Complete guide with both methods and troubleshooting
+- **[🔧 RTSS SETUP](RTSS_SETUP.md)** ← Detailed RTSS/MSI Afterburner integration
+- **[✅ VERIFICATION](VERIFICATION.md)** ← Technical verification details
+
+---
+
 ## Quick Start
 
 ### Step 1: Test the Ping Monitor
