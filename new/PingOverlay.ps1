@@ -4,29 +4,71 @@
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
+# Add Win32 API functions
+Add-Type @"
+    using System;
+    using System.Runtime.InteropServices;
+    public class Win32 {
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll")]
+        public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+        [DllImport("user32.dll")]
+        public static extern bool IsWindowVisible(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        public static extern bool IsIconic(IntPtr hWnd);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+    }
+"@
+
 $ServerIP = "198.136.44.61"
 $PingInterval = 1000
 $GameProcessName = "WindowsEntryPoint.Windows_W10"
 
-$GameProcessNames = @(
-    "WindowsEntryPoint.Windows_W10",
-    "moderncombat5",
-    "mc5"
-)
-
 Write-Host "Ping Overlay for Modern Combat 5"
 Write-Host "Waiting for game to start..."
 
-function Is-GameRunning {
-    foreach ($name in $GameProcessNames) {
-        $process = Get-Process -Name $name -ErrorAction SilentlyContinue
-        if ($process) { return $true }
+function Get-GameProcess {
+    return Get-Process -Name $GameProcessName -ErrorAction SilentlyContinue
+}
+
+function Get-GameWindow {
+    $process = Get-GameProcess
+    if (-not $process) { return $null }
+
+    # Get main window handle
+    if ($process.MainWindowHandle -ne [IntPtr]::Zero) {
+        return $process.MainWindowHandle
     }
-    return $false
+    return $null
+}
+
+function Is-GameWindowActive {
+    $gameWindow = Get-GameWindow
+    if (-not $gameWindow) { return $false }
+
+    # Check if window is visible and not minimized
+    $isVisible = [Win32]::IsWindowVisible($gameWindow)
+    $isMinimized = [Win32]::IsIconic($gameWindow)
+
+    return ($isVisible -and -not $isMinimized)
 }
 
 # Wait for game
-while (-not (Is-GameRunning)) {
+while (-not (Get-GameWindow)) {
     Write-Host "." -NoNewline
     Start-Sleep -Seconds 2
 }
@@ -71,29 +113,45 @@ $label.Add_MouseClick({ param($s, $e); if ($e.Button -eq 'Right') { $form.Close(
 $timer = New-Object System.Windows.Forms.Timer
 $timer.Interval = $PingInterval
 $timer.Add_Tick({
-        if (-not (Is-GameRunning)) {
+        # Check if game process still exists
+        $gameProcess = Get-GameProcess
+        if (-not $gameProcess) {
             Write-Host "Game closed."
             $timer.Stop()
             $form.Close()
             return
         }
-    
-        try {
-            $ping = Test-Connection -ComputerName $ServerIP -Count 1 -ErrorAction SilentlyContinue
-            if ($ping) {
-                $ms = $ping.ResponseTime
-                $label.Text = "MC5 PING: $ms ms"
-                if ($ms -lt 100) { $label.ForeColor = [System.Drawing.Color]::Cyan }
-                elseif ($ms -lt 200) { $label.ForeColor = [System.Drawing.Color]::Yellow }
-                else { $label.ForeColor = [System.Drawing.Color]::Red }
-            }
-            else {
-                $label.Text = "MC5 PING: TIMEOUT"
-                $label.ForeColor = [System.Drawing.Color]::Red
-            }
+
+        # Check if game window is visible and active
+        $isActive = Is-GameWindowActive
+
+        # Show or hide overlay based on game window state
+        if ($isActive -and -not $form.Visible) {
+            $form.Show()
         }
-        catch {
-            $label.Text = "MC5 PING: ERROR"
+        elseif (-not $isActive -and $form.Visible) {
+            $form.Hide()
+        }
+
+        # Only update ping when overlay is visible
+        if ($form.Visible) {
+            try {
+                $ping = Test-Connection -ComputerName $ServerIP -Count 1 -ErrorAction SilentlyContinue
+                if ($ping) {
+                    $ms = $ping.ResponseTime
+                    $label.Text = "MC5 PING: $ms ms"
+                    if ($ms -lt 100) { $label.ForeColor = [System.Drawing.Color]::Cyan }
+                    elseif ($ms -lt 200) { $label.ForeColor = [System.Drawing.Color]::Yellow }
+                    else { $label.ForeColor = [System.Drawing.Color]::Red }
+                }
+                else {
+                    $label.Text = "MC5 PING: TIMEOUT"
+                    $label.ForeColor = [System.Drawing.Color]::Red
+                }
+            }
+            catch {
+                $label.Text = "MC5 PING: ERROR"
+            }
         }
     })
 
