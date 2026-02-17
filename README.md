@@ -1,6 +1,6 @@
 # MC5 Ping Overlay - Setup Instructions
 
-`Need claude to fix this code as it doesnt actually points to the window of the game and points to any window, i want this overlay to be only shown in my MC5 windows store app game whose process name is always gonna be WindowsEntryPoint.Windows_W10.exe`
+**FIXED:** The overlay now correctly targets only the MC5 game window (`WindowsEntryPoint.Windows_W10.exe`) and will only be visible when the game window is active and not minimized.
 
 ## Quick Start
 
