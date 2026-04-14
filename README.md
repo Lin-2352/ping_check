@@ -24,7 +24,7 @@ Ping Overlay draws a live latency readout (`PING: 42 ms`) directly on top of you
 
 > **Look at the top right corner** to see the overlay in action!
 > 
-> ![In-game Screenshot](./screenshot.png)
+> <img width="1753" height="1598" alt="Image" src="https://github.com/user-attachments/assets/24b62c1b-3c87-4aa5-a311-8088ee37355d" />
 
 ---
 
