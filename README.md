@@ -39,7 +39,7 @@ Ping Overlay draws a live latency readout (`PING: 42 ms`) directly on top of you
 | 🌙 **Dark / Light mode** | Toggle from the system tray menu |
 | 🖥️ **System tray** | Right-click for settings, capture, stats reset |
 | ⚙️ **Capture Window** | Click and switch to your game — auto-detects the process |
-| 📊 **Ping statistics** | Rolling 60-sample min/avg/max + packet loss % |
+| 📊 **Ping statistics** | Shows realtime latency |
 | 🔁 **Auto-start** | Optional Windows startup integration |
 | 📦 **Zero install** | Single `.bat` file — copy, double-click, done |
 
